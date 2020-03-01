@@ -1,11 +1,11 @@
 import React, { Component, RefObject } from 'react';
 import { connect } from 'dva';
-import { Button, Col, Form, Input, Row } from 'antd';
+import { Button, Col, Form, Input, notification, Row } from 'antd';
 import { ConnectBoxProps, ConnectBoxState } from '@/pages/Airplane/FlightControl/ConnectBox/data';
 import { FormInstance } from 'antd/lib/form';
 import SockJS from 'sockjs-client';
 // import Stomp from 'stomp-client';
-import { Stomp } from '@stomp/stompjs';
+import { CompatClient, IFrame } from '@stomp/stompjs';
 
 class ConnectBox extends Component<ConnectBoxProps, ConnectBoxState> {
   formRef: RefObject<FormInstance> = React.createRef();
@@ -24,20 +24,31 @@ class ConnectBox extends Component<ConnectBoxProps, ConnectBoxState> {
     this.setState({ loading: true });
     const { prefix, value } = this.state;
     const url = prefix + value;
-    const socket = new SockJS(url);
-    const client = Stomp.over(socket);
+    const client = new CompatClient(() => new SockJS(url));
+    client.debug = () => {};
     client.connect(
       {},
-      (frame: any) => {
-        console.log(`Connected: ${frame}`);
+      (frame: IFrame) => {
+        console.log('连接成功', frame);
+        notification.info({ message: '连接成功', description: '已与系统建立连接！' });
         this.setState({ loading: false, client });
         this.props.onConnect(client);
       },
-      (error: any) => {
-        console.log(`错误${error}`);
-        this.setState({ loading: false });
+      (error: IFrame) => {
+        console.log('错误回调', error);
+      },
+      (event: CloseEvent) => {
+        console.log('关闭事件', event);
+        if (event.code !== 1000) {
+          notification.error({ message: '连接失败', description: '连接被意外关闭！' });
+        } else {
+          notification.info({ message: '连接关闭', description: '主动关闭连接成功！' });
+        }
+        this.setState({ loading: false, client: null });
+        this.props.onDisconnect();
       },
     );
+    // client.connect()
   };
 
   disconnect = () => {
