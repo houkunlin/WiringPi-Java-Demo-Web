@@ -1,31 +1,48 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import { connect } from 'dva';
 import { Form } from '@ant-design/compatible';
-import { Card, Col, Row, Statistic, Tag } from 'antd';
+import { Card, Col, Drawer, Dropdown, Menu, Row, Statistic, Tag } from 'antd';
 import { MotorBoxProps, MotorBoxState } from '@/pages/Airplane/FlightControl/MotorBox/data';
-import { Motor } from '@/pages/Airplane/FlightControl/data';
+import { Motor, MotorStatus } from '@/pages/Airplane/FlightControl/data';
+import { MenuOutlined } from '@ant-design/icons/lib';
+import { ClickParam } from 'antd/lib/menu';
 
-const Item = ({ motor }: { motor: Motor }) => (
+const Item = ({ item }: { motor: Motor; item: MotorStatus }) => (
   <div>
-    <p>运行状态：{motor.run ? <Tag color="blue">运行中</Tag> : <Tag color="red">停止</Tag>}</p>
     <Row gutter={8} style={{ marginBottom: 20 }}>
-      <Col span={12}>
-        <Statistic title="占空比" value={motor.dutyRatio * 100.0} suffix="%" precision={2} />
-      </Col>
-      <Col span={12}>
-        <Statistic title="姿态调整" value={motor.posture * 100.0} suffix="%" precision={2} />
-      </Col>
-    </Row>
-    <Row gutter={8}>
-      <Col span={12}>
-        <Statistic title="调试高电平" value={motor.debugHighLevelTime} suffix=" ms" />
-      </Col>
-      <Col span={12}>
-        <Statistic title="运行周期" value={motor.runtimeCycle} suffix=" ns" />
+      <Col span={24}>
+        <Statistic title="高电平时间" value={item.value} suffix=" us" />
       </Col>
     </Row>
   </div>
 );
+const MotorMenu = ({ item }: { item: MotorStatus }) => {
+  const [visible, setVisible] = useState<boolean>(false);
+  const menuClick = (result: ClickParam) => {
+    console.log(result);
+    if (result.key === 'dutyRatio') {
+      setVisible(true);
+    }
+  };
+
+  const menu = (
+    <Menu onClick={menuClick}>
+      <Menu.Item key="dutyRatio">占空比调试</Menu.Item>
+    </Menu>
+  );
+
+  return (
+    <div>
+      <Drawer visible={visible} placement="top" closable={false} onClose={() => setVisible(false)}>
+        当前值：{item.value}
+      </Drawer>
+
+      <Dropdown overlay={menu}>
+        <MenuOutlined />
+      </Dropdown>
+    </div>
+  );
+};
 
 class MotorBox extends Component<MotorBoxProps, MotorBoxState> {
   constructor(props: MotorBoxProps) {
@@ -34,14 +51,24 @@ class MotorBox extends Component<MotorBoxProps, MotorBoxState> {
   }
 
   render() {
-    const { motors } = this.props;
+    const { motor } = this.props;
+    const { motors, maxValue, minValue } = motor;
+    const title = (item: MotorStatus) => {
+      const run = item.value <= maxValue && item.value >= minValue + 80;
+      return (
+        <div>
+          <span style={{ marginRight: 20 }}>{item.index + 1}号电机</span>
+          {run ? <Tag color="blue">运行中</Tag> : <Tag color="red">停止</Tag>}
+        </div>
+      );
+    };
     return (
       <Row gutter={20} style={{ marginBottom: 20 }}>
         {motors &&
-          motors.map(motor => (
-            <Col xs={24 / motors.length} key={`${motor.title}`}>
-              <Card title={motor.title}>
-                <Item motor={motor} />
+          motors.map(motorItem => (
+            <Col xs={24 / motors.length} key={`${motorItem.index}`}>
+              <Card title={title(motorItem)} extra={<MotorMenu item={motorItem} />}>
+                <Item motor={motor} item={motorItem} />
               </Card>
             </Col>
           ))}

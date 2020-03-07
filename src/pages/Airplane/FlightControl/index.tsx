@@ -8,10 +8,10 @@ import PostureBox from '@/pages/Airplane/FlightControl/PostureBox';
 import MotorBox from '@/pages/Airplane/FlightControl/MotorBox';
 import ConnectBox from '@/pages/Airplane/FlightControl/ConnectBox';
 import ControlBox from '@/pages/Airplane/FlightControl/ControlBox';
+import { CompatClient } from '@stomp/stompjs/esm5/compatibility/compat-client';
 import PowerBox from './PowerBox';
 import { FlightControlProps, FlightControlState } from './data';
 import styles from './index.less';
-import { CompatClient } from '@stomp/stompjs/esm5/compatibility/compat-client';
 
 class FlightControl extends Component<FlightControlProps, FlightControlState> {
   constructor(props: FlightControlProps) {
@@ -35,64 +35,29 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
           y: 0,
           z: 0,
         },
-        motors: [
-          {
-            gpio: {
-              pin: 0,
-              physPin: null,
-              wiringPiPin: null,
-              bcmPin: null,
+        motor: {
+          motors: [
+            {
+              index: 0,
+              value: 0,
             },
-            dutyRatio: 0,
-            posture: 0.0,
-            run: false,
-            debugHighLevelTime: 0,
-            runtimeCycle: 0,
-            title: '1号电机',
-          },
-          {
-            gpio: {
-              pin: 0,
-              physPin: null,
-              wiringPiPin: null,
-              bcmPin: null,
+            {
+              index: 1,
+              value: 0,
             },
-            dutyRatio: 0,
-            posture: 0.0,
-            run: false,
-            debugHighLevelTime: 0,
-            runtimeCycle: 0,
-            title: '2号电机',
-          },
-          {
-            gpio: {
-              pin: 0,
-              physPin: null,
-              wiringPiPin: null,
-              bcmPin: null,
+            {
+              index: 2,
+              value: 0,
             },
-            dutyRatio: 0,
-            posture: 0.0,
-            run: false,
-            debugHighLevelTime: 0,
-            runtimeCycle: 0,
-            title: '3号电机',
-          },
-          {
-            gpio: {
-              pin: 0,
-              physPin: null,
-              wiringPiPin: null,
-              bcmPin: null,
+            {
+              index: 3,
+              value: 0,
             },
-            dutyRatio: 0,
-            posture: 0.0,
-            run: false,
-            debugHighLevelTime: 0,
-            runtimeCycle: 0,
-            title: '4号电机',
-          },
-        ],
+          ],
+          maxValue: 0,
+          midValue: 0,
+          minValue: 0,
+        },
       },
       power: {
         gpio: {
@@ -144,7 +109,7 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
     // console.log(document.location);
     const {
       power,
-      airplane: { direction, gps, posture, motors },
+      airplane: { direction, gps, posture, motor },
     } = this.state;
 
     return (
@@ -167,7 +132,7 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
             </Card>
           </Col>
         </Row>
-        <MotorBox motors={motors} />
+        <MotorBox motor={motor} />
         <ControlBox direction={direction} onChange={this.directionChange} />
       </PageHeaderWrapper>
     );

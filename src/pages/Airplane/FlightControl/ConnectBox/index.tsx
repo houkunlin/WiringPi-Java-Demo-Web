@@ -14,7 +14,8 @@ class ConnectBox extends Component<ConnectBoxProps, ConnectBoxState> {
     super(props);
     this.state = {
       prefix: `${document.location.protocol}//`,
-      value: `${document.location.host}/raspberry-pi/airplane`,
+      // value: `${document.location.host}/raspberry-pi/airplane`,
+      value: `192.168.199.24:8080/raspberry-pi/airplane`,
       loading: false,
       client: null,
     };

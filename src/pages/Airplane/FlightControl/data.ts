@@ -16,14 +16,16 @@ export interface Power {
   endTime?: string | number | null;
 }
 
+export interface MotorStatus {
+  index: number;
+  value: number;
+}
+
 export interface Motor {
-  gpio: Gpio;
-  dutyRatio: number;
-  posture: number;
-  run: boolean;
-  debugHighLevelTime: number;
-  runtimeCycle: number;
-  title?: string | null;
+  motors: MotorStatus[];
+  maxValue: number;
+  midValue: number;
+  minValue: number;
 }
 
 export interface Posture {
@@ -53,7 +55,7 @@ export interface FlightControlState {
     direction: Direction;
     gps: Gps;
     posture: Posture;
-    motors: Motor[];
+    motor: Motor;
   };
   power: Power;
   client: CompatClient | null;
