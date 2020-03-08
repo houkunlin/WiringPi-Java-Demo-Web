@@ -12,6 +12,7 @@ import { CompatClient } from '@stomp/stompjs/esm5/compatibility/compat-client';
 import PowerBox from './PowerBox';
 import { FlightControlProps, FlightControlState } from './data';
 import styles from './index.less';
+import Mpu6050Box from '@/pages/Airplane/FlightControl/Mpu6050Box';
 
 class FlightControl extends Component<FlightControlProps, FlightControlState> {
   constructor(props: FlightControlProps) {
@@ -34,6 +35,71 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
           x: 0,
           y: 0,
           z: 0,
+        },
+        mpu6050: {
+          /**
+           * 陀螺旋转角传感器值
+           */
+          gyroAngularSpeedX: 0,
+          /**
+           * 陀螺旋转角传感器值
+           */
+          gyroAngularSpeedY: 0,
+          /**
+           * 陀螺旋转角传感器值
+           */
+          gyroAngularSpeedZ: 0,
+
+          /**
+           * 陀螺仪角速度偏移，对象初始化时会初始化该参数
+           */
+          gyroAngularSpeedOffsetX: 0,
+          /**
+           * 陀螺仪角速度偏移，对象初始化时会初始化该参数
+           */
+          gyroAngularSpeedOffsetY: 0,
+          /**
+           * 陀螺仪角速度偏移，对象初始化时会初始化该参数
+           */
+          gyroAngularSpeedOffsetZ: 0,
+
+          /**
+           * 过滤角度，绝对角度，旋转角度计算结果
+           */
+          filteredAngleX: 0,
+          /**
+           * 过滤角度，绝对角度，旋转角度计算结果
+           */
+          filteredAngleY: 0,
+          /**
+           * 过滤角度，绝对角度，旋转角度计算结果
+           */
+          filteredAngleZ: 0,
+
+          /**
+           * 加速度传感器值
+           */
+          accelAccelerationX: 0,
+          /**
+           * 加速度传感器值
+           */
+          accelAccelerationY: 0,
+          /**
+           * 加速度传感器值
+           */
+          accelAccelerationZ: 0,
+          /**
+           * 加速度计算结果
+           */
+          accelAngleX: 0,
+          /**
+           * 加速度计算结果
+           */
+          accelAngleY: 0,
+          /**
+           * 加速度计算结果
+           */
+          accelAngleZ: 0,
         },
         motor: {
           motors: [
@@ -109,7 +175,7 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
     // console.log(document.location);
     const {
       power,
-      airplane: { direction, gps, posture, motor },
+      airplane: { direction, gps, posture, motor, mpu6050 },
     } = this.state;
 
     return (
@@ -129,6 +195,11 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
           <Col xs={12}>
             <Card title="姿态数据">
               <PostureBox data={posture} />
+            </Card>
+          </Col>
+          <Col xs={24}>
+            <Card title="姿态数据2" style={{ marginTop: 20 }}>
+              <Mpu6050Box data={mpu6050} />
             </Card>
           </Col>
         </Row>
