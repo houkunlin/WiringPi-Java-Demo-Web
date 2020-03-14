@@ -11,6 +11,7 @@ import nipplejs, {
   JoystickOutputData,
 } from 'nipplejs';
 import { FormInstance } from 'antd/lib/form';
+import { MinusOutlined, PlusOutlined } from '@ant-design/icons/lib';
 
 class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
   nippleBox: RefObject<any> = React.createRef();
@@ -18,6 +19,42 @@ class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
   formRef: RefObject<FormInstance> = React.createRef();
 
   nipple: JoystickManager | undefined;
+
+  genObj = (name: string, max: number, min: number, step: number) => ({
+    name,
+    max,
+    min,
+    step,
+    maxFun: () => {
+      const obj = {};
+      obj[name] = max;
+      this.setFieldsValue(obj);
+    },
+    midFun: () => {
+      const obj = {};
+      obj[name] = (max + min) / 2.0;
+      this.setFieldsValue(obj);
+    },
+    minFun: () => {
+      const obj = {};
+      obj[name] = min;
+      this.setFieldsValue(obj);
+    },
+    stepPreFun: () => {
+      this.stepFun(name, -step);
+    },
+    stepNextFun: () => {
+      this.stepFun(name, step);
+    },
+  });
+
+  vertical = this.genObj('vertical', 1, 0, 0.001);
+
+  horizontal = this.genObj('horizontal', 20, -20, 0.5);
+
+  forwardBackward = this.genObj('forwardBackward', 20, -20, 0.5);
+
+  rotate = this.genObj('rotate', 0.5, -0.5, 0.001);
 
   constructor(props: ControlBoxProps) {
     super(props);
@@ -59,7 +96,35 @@ class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
     };
   }
 
+  onKeyboardEvent = (key: KeyboardEvent) => {
+    switch (key.code) {
+      case 'KeyW':
+        this.vertical.stepNextFun();
+        break;
+      case 'KeyS':
+        this.vertical.stepPreFun();
+        break;
+      case 'Numpad4':
+        this.horizontal.stepPreFun();
+        break;
+      case 'Numpad6':
+        this.horizontal.stepNextFun();
+        break;
+      case 'Numpad8':
+        this.forwardBackward.stepNextFun();
+        break;
+      case 'Numpad2':
+        this.forwardBackward.stepPreFun();
+        break;
+      default:
+        return;
+    }
+    console.log(key, key.code, key.keyCode);
+  };
+
   componentDidMount(): void {
+    console.log(this.props);
+    this.props.bindRef(this);
     const options: JoystickManagerOptions = {
       zone: this.nippleBox.current,
       mode: 'static',
@@ -145,39 +210,23 @@ class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
     }
   };
 
+  stepFun = (field: string, step: number) => {
+    if (this.formRef.current) {
+      const values = {};
+      const value: any = this.formRef.current.getFieldValue(field) * 1 + step;
+      values[field] = value.toFixed(3) * 1.0;
+      this.setFieldsValue(values);
+    }
+  };
+
   render() {
     // const {setFieldsValue} = this.formRef.current;
-    const { setFieldsValue } = this;
+    const { vertical, horizontal, forwardBackward, rotate } = this;
 
     // const {setFieldsValue} = this.props.form;
     const { direction } = this.props;
     const { nippleData } = this.state;
     const formatNumber = (value: number) => numeral(value).format('0.0%');
-    const genObj = (name: string, max: number, min: number, step: number) => ({
-      name,
-      max,
-      min,
-      step,
-      maxFun: () => {
-        const obj = {};
-        obj[name] = max;
-        setFieldsValue(obj);
-      },
-      midFun: () => {
-        const obj = {};
-        obj[name] = (max + min) / 2.0;
-        setFieldsValue(obj);
-      },
-      minFun: () => {
-        const obj = {};
-        obj[name] = min;
-        setFieldsValue(obj);
-      },
-    });
-    const vertical = genObj('vertical', 1, 0, 0.001);
-    const horizontal = genObj('horizontal', 0.5, -0.5, 0.001);
-    const forwardBackward = genObj('forwardBackward', 0.5, -0.5, 0.001);
-    const rotate = genObj('rotate', 0.5, -0.5, 0.001);
     return (
       <Form
         ref={this.formRef}
@@ -243,6 +292,18 @@ class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
                       </Button>
                     </Col>
                   </Row>
+                  <Row>
+                    <Col span={12}>
+                      <Button onClick={vertical.stepNextFun}>
+                        <PlusOutlined />
+                      </Button>
+                    </Col>
+                    <Col span={12}>
+                      <Button onClick={vertical.stepPreFun}>
+                        <MinusOutlined />
+                      </Button>
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
             </Card>
@@ -260,35 +321,51 @@ class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
                       tooltipVisible
                       style={{ height: 200 }}
                       tooltipPlacement="top"
-                      tipFormatter={formatNumber}
+                      tipFormatter={value => formatNumber(value / 100.0)}
                     />
                   </Form.Item>
                 </Col>
                 <Col xs={12}>
-                  <Button
-                    type="primary"
-                    block
-                    style={{ marginBottom: 10 }}
-                    onClick={forwardBackward.maxFun}
-                  >
-                    最大
-                  </Button>
-                  <Button
-                    type="dashed"
-                    block
-                    style={{ marginBottom: 10 }}
-                    onClick={forwardBackward.midFun}
-                  >
-                    中间
-                  </Button>
-                  <Button
-                    type="primary"
-                    block
-                    style={{ marginBottom: 10 }}
-                    onClick={forwardBackward.minFun}
-                  >
-                    最小
-                  </Button>
+                  <Row>
+                    <Col span={24}>
+                      <Button
+                        type="primary"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={forwardBackward.maxFun}
+                      >
+                        最大
+                      </Button>
+                      <Button
+                        type="dashed"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={forwardBackward.midFun}
+                      >
+                        中间
+                      </Button>
+                      <Button
+                        type="primary"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={forwardBackward.minFun}
+                      >
+                        最小
+                      </Button>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col span={12}>
+                      <Button onClick={forwardBackward.stepNextFun}>
+                        <PlusOutlined />
+                      </Button>
+                    </Col>
+                    <Col span={12}>
+                      <Button onClick={forwardBackward.stepPreFun}>
+                        <MinusOutlined />
+                      </Button>
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
             </Card>
@@ -304,35 +381,51 @@ class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
                       step={horizontal.step}
                       tooltipVisible
                       tooltipPlacement="top"
-                      tipFormatter={formatNumber}
+                      tipFormatter={value => formatNumber(value / 100.0)}
                     />
                   </Form.Item>
                 </Col>
                 <Col xs={24}>
-                  <Button
-                    type="primary"
-                    block
-                    style={{ marginBottom: 10 }}
-                    onClick={horizontal.maxFun}
-                  >
-                    最大
-                  </Button>
-                  <Button
-                    type="dashed"
-                    block
-                    style={{ marginBottom: 10 }}
-                    onClick={horizontal.midFun}
-                  >
-                    中间
-                  </Button>
-                  <Button
-                    type="primary"
-                    block
-                    style={{ marginBottom: 10 }}
-                    onClick={horizontal.minFun}
-                  >
-                    最小
-                  </Button>
+                  <Row>
+                    <Col span={24}>
+                      <Button
+                        type="primary"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={horizontal.maxFun}
+                      >
+                        最大
+                      </Button>
+                      <Button
+                        type="dashed"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={horizontal.midFun}
+                      >
+                        中间
+                      </Button>
+                      <Button
+                        type="primary"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={horizontal.minFun}
+                      >
+                        最小
+                      </Button>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col span={12}>
+                      <Button onClick={horizontal.stepNextFun}>
+                        <PlusOutlined />
+                      </Button>
+                    </Col>
+                    <Col span={12}>
+                      <Button onClick={horizontal.stepPreFun}>
+                        <MinusOutlined />
+                      </Button>
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
             </Card>
@@ -353,15 +446,46 @@ class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
                   </Form.Item>
                 </Col>
                 <Col xs={24}>
-                  <Button type="primary" block style={{ marginBottom: 10 }} onClick={rotate.maxFun}>
-                    最大
-                  </Button>
-                  <Button type="dashed" block style={{ marginBottom: 10 }} onClick={rotate.midFun}>
-                    中间
-                  </Button>
-                  <Button type="primary" block style={{ marginBottom: 10 }} onClick={rotate.minFun}>
-                    最小
-                  </Button>
+                  <Row>
+                    <Col span={24}>
+                      <Button
+                        type="primary"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={rotate.maxFun}
+                      >
+                        最大
+                      </Button>
+                      <Button
+                        type="dashed"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={rotate.midFun}
+                      >
+                        中间
+                      </Button>
+                      <Button
+                        type="primary"
+                        block
+                        style={{ marginBottom: 10 }}
+                        onClick={rotate.minFun}
+                      >
+                        最小
+                      </Button>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col span={12}>
+                      <Button onClick={rotate.stepNextFun}>
+                        <PlusOutlined />
+                      </Button>
+                    </Col>
+                    <Col span={12}>
+                      <Button onClick={rotate.stepPreFun}>
+                        <MinusOutlined />
+                      </Button>
+                    </Col>
+                  </Row>
                 </Col>
               </Row>
             </Card>

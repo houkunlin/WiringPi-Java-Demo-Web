@@ -4,7 +4,6 @@ import { Card, Col, Row } from 'antd';
 import { Form } from '@ant-design/compatible';
 import { connect } from 'dva';
 import GpsBox from '@/pages/Airplane/FlightControl/GpsBox';
-import PostureBox from '@/pages/Airplane/FlightControl/PostureBox';
 import MotorBox from '@/pages/Airplane/FlightControl/MotorBox';
 import ConnectBox from '@/pages/Airplane/FlightControl/ConnectBox';
 import ControlBox from '@/pages/Airplane/FlightControl/ControlBox';
@@ -15,8 +14,27 @@ import styles from './index.less';
 import Mpu6050Box from '@/pages/Airplane/FlightControl/Mpu6050Box';
 
 class FlightControl extends Component<FlightControlProps, FlightControlState> {
+  box: any | undefined;
+
   constructor(props: FlightControlProps) {
     super(props);
+
+    onkeyup = key => {
+      switch (key.code) {
+        case 'Escape':
+        case 'Numpad5':
+        case 'Numpad0':
+        case 'NumpadEnter':
+          this.powerChange(false);
+          break;
+        default:
+          if (this.box.onKeyboardEvent) {
+            this.box.onKeyboardEvent(key);
+          }
+          return;
+      }
+      console.log(key, key.code, key.keyCode, this.box);
+    };
     this.state = {
       airplane: {
         direction: {
@@ -31,75 +49,12 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
           height: 0,
           speed: 0,
         },
-        posture: {
-          x: 0,
-          y: 0,
-          z: 0,
-        },
+        posture: [],
         mpu6050: {
-          /**
-           * 陀螺旋转角传感器值
-           */
-          gyroAngularSpeedX: 0,
-          /**
-           * 陀螺旋转角传感器值
-           */
-          gyroAngularSpeedY: 0,
-          /**
-           * 陀螺旋转角传感器值
-           */
-          gyroAngularSpeedZ: 0,
-
-          /**
-           * 陀螺仪角速度偏移，对象初始化时会初始化该参数
-           */
-          gyroAngularSpeedOffsetX: 0,
-          /**
-           * 陀螺仪角速度偏移，对象初始化时会初始化该参数
-           */
-          gyroAngularSpeedOffsetY: 0,
-          /**
-           * 陀螺仪角速度偏移，对象初始化时会初始化该参数
-           */
-          gyroAngularSpeedOffsetZ: 0,
-
-          /**
-           * 过滤角度，绝对角度，旋转角度计算结果
-           */
-          filteredAngleX: 0,
-          /**
-           * 过滤角度，绝对角度，旋转角度计算结果
-           */
-          filteredAngleY: 0,
-          /**
-           * 过滤角度，绝对角度，旋转角度计算结果
-           */
-          filteredAngleZ: 0,
-
-          /**
-           * 加速度传感器值
-           */
-          accelAccelerationX: 0,
-          /**
-           * 加速度传感器值
-           */
-          accelAccelerationY: 0,
-          /**
-           * 加速度传感器值
-           */
-          accelAccelerationZ: 0,
-          /**
-           * 加速度计算结果
-           */
-          accelAngleX: 0,
-          /**
-           * 加速度计算结果
-           */
-          accelAngleY: 0,
-          /**
-           * 加速度计算结果
-           */
-          accelAngleZ: 0,
+          gyro: {},
+          acceleration: {},
+          angularResult: {},
+          temperature: {},
         },
         motor: {
           motors: [
@@ -140,6 +95,10 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
     };
   }
 
+  onRef = (box: any) => {
+    this.box = box;
+  };
+
   directionChange = (values: any) => {
     const { client } = this.state;
     if (client != null) {
@@ -175,7 +134,7 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
     // console.log(document.location);
     const {
       power,
-      airplane: { direction, gps, posture, motor, mpu6050 },
+      airplane: { direction, gps, motor, mpu6050, posture },
     } = this.state;
 
     return (
@@ -192,11 +151,6 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
               <GpsBox data={gps} />
             </Card>
           </Col>
-          <Col xs={12}>
-            <Card title="姿态数据">
-              <PostureBox data={posture} />
-            </Card>
-          </Col>
           <Col xs={24}>
             <Card title="姿态数据2" style={{ marginTop: 20 }}>
               <Mpu6050Box data={mpu6050} />
@@ -204,7 +158,10 @@ class FlightControl extends Component<FlightControlProps, FlightControlState> {
           </Col>
         </Row>
         <MotorBox motor={motor} />
-        <ControlBox direction={direction} onChange={this.directionChange} />
+        <Row>
+          <Col span={24}>补偿数据: {posture}</Col>
+        </Row>
+        <ControlBox bindRef={this.onRef} direction={direction} onChange={this.directionChange} />
       </PageHeaderWrapper>
     );
   }

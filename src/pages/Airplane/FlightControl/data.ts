@@ -28,76 +28,129 @@ export interface Motor {
   minValue: number;
 }
 
-export interface Posture {
-  x: number;
-  y: number;
-  z: number;
+export interface Gyro {
+  /**
+   * 静止状态下校准得到的偏移平均值
+   */
+  offsetX: number;
+  /**
+   * 静止状态下校准得到的偏移平均值
+   */
+  offsetY: number;
+  /**
+   * 静止状态下校准得到的偏移平均值
+   */
+  offsetZ: number;
+  /**
+   * 除去LBS，得到角速度值，绝对角速度
+   */
+  divLbsX: number;
+  /**
+   * 除去LBS，得到角速度值，绝对角速度
+   */
+  divLbsY: number;
+  /**
+   * 除去LBS，得到角速度值，绝对角速度
+   */
+  divLbsZ: number;
+  /**
+   * 相对角速度，计算实际的角速度，因为角速度有一定波动，需要记录静止状态时的波动数，然后以当前的 - 静止的 = 实际的角速度值
+   */
+  angularSpeedX: number;
+  /**
+   * 相对角速度，计算实际的角速度，因为角速度有一定波动，需要记录静止状态时的波动数，然后以当前的 - 静止的 = 实际的角速度值
+   */
+  angularSpeedY: number;
+  /**
+   * 相对角速度，计算实际的角速度，因为角速度有一定波动，需要记录静止状态时的波动数，然后以当前的 - 静止的 = 实际的角速度值
+   */
+  angularSpeedZ: number;
+  /**
+   * 旋转角度计算结果
+   */
+  resultX: number;
+  /**
+   * 旋转角度计算结果
+   */
+  resultY: number;
+  /**
+   * 旋转角度计算结果
+   */
+  resultZ: number;
+}
+
+export interface Acceleration {
+  /**
+   * 静止状态下校准得到的偏移平均值
+   */
+  offsetX: number;
+  /**
+   * 静止状态下校准得到的偏移平均值
+   */
+  offsetY: number;
+  /**
+   * 除去LBS值，得到该方向的重力加速度，单位g
+   */
+  divLbsX: number;
+  /**
+   * 除去LBS值，得到该方向的重力加速度，单位g
+   */
+  divLbsY: number;
+  /**
+   * 除去LBS值，得到该方向的重力加速度，单位g
+   */
+  divLbsZ: number;
+  /**
+   * 绝对角度，通过重力加速度计算出旋转角度
+   */
+  absoluteRotationX: number;
+  /**
+   * 绝对角度，通过重力加速度计算出旋转角度
+   */
+  absoluteRotationY: number;
+  /**
+   * 相对角度，通过重力加速度计算出旋转角度
+   */
+  relativelyRotationX: number;
+  /**
+   * 相对角度，通过重力加速度计算出旋转角度
+   */
+  relativelyRotationY: number;
+}
+
+export interface AngularResult {
+  /**
+   * 过滤角度，绝对角度，旋转角度计算结果
+   */
+  absoluteAngleX: number;
+  /**
+   * 过滤角度，绝对角度，旋转角度计算结果
+   */
+  absoluteAngleY: number;
+  /**
+   * 垂直方向角度旋转
+   */
+  angleZ: number;
+
+  /**
+   * 相对角度
+   */
+  relativelyAngleX: number;
+  /**
+   * 相对角度
+   */
+  relativelyAngleY: number;
+}
+
+export interface Temperature {
+  temp: number;
 }
 
 export interface Mpu6050 {
-  /**
-   * 陀螺旋转角传感器值
-   */
-  gyroAngularSpeedX: number;
-  /**
-   * 陀螺旋转角传感器值
-   */
-  gyroAngularSpeedY: number;
-  /**
-   * 陀螺旋转角传感器值
-   */
-  gyroAngularSpeedZ: number;
-
-  /**
-   * 陀螺仪角速度偏移，对象初始化时会初始化该参数
-   */
-  gyroAngularSpeedOffsetX: number;
-  /**
-   * 陀螺仪角速度偏移，对象初始化时会初始化该参数
-   */
-  gyroAngularSpeedOffsetY: number;
-  /**
-   * 陀螺仪角速度偏移，对象初始化时会初始化该参数
-   */
-  gyroAngularSpeedOffsetZ: number;
-
-  /**
-   * 过滤角度，绝对角度，旋转角度计算结果
-   */
-  filteredAngleX: number;
-  /**
-   * 过滤角度，绝对角度，旋转角度计算结果
-   */
-  filteredAngleY: number;
-  /**
-   * 过滤角度，绝对角度，旋转角度计算结果
-   */
-  filteredAngleZ: number;
-
-  /**
-   * 加速度传感器值
-   */
-  accelAccelerationX: number;
-  /**
-   * 加速度传感器值
-   */
-  accelAccelerationY: number;
-  /**
-   * 加速度传感器值
-   */
-  accelAccelerationZ: number;
-  /**
-   * 加速度计算结果
-   */
-  accelAngleX: number;
-  /**
-   * 加速度计算结果
-   */
-  accelAngleY: number;
-  /**
-   * 加速度计算结果
-   */
-  accelAngleZ: number;
+  gyro: Gyro;
+  acceleration: Acceleration;
+  angularResult: AngularResult;
+  temperature: Temperature;
 }
 
 export interface Gps {
@@ -120,9 +173,9 @@ export interface FlightControlState {
   airplane: {
     direction: Direction;
     gps: Gps;
-    posture: Posture;
     mpu6050: Mpu6050;
     motor: Motor;
+    posture: number[];
   };
   power: Power;
   client: CompatClient | null;

@@ -5,6 +5,7 @@ import { Position } from 'nipplejs';
 export interface ControlBoxProps extends ConnectProps {
   direction: Direction;
   onChange: (values: any) => any;
+  bindRef: (ref: any) => any;
 }
 
 export interface ControlBoxState {
