@@ -48,7 +48,7 @@ class ControlBox extends Component<ControlBoxProps, ControlBoxState> {
     },
   });
 
-  vertical = this.genObj('vertical', 1, 0, 0.001);
+  vertical = this.genObj('vertical', 1, 0, 0.005);
 
   horizontal = this.genObj('horizontal', 20, -20, 0.5);
 
